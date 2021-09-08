@@ -32,7 +32,16 @@ function serve(phpFile, port) {
         })
         req.on('end', () => {
             const { headers, method } = req;
+            //console.log(method);
             const urlObj = url.parse(req.url, true);
+            //console.log(urlObj);
+
+            if (urlObj.pathname === "/favicon.ico") {
+                // 404 for now
+                res.writeHead(404);
+                res.end();
+                return;
+            }
             let body = null;
             if (requestData !== '') {
                 const type = headers['content-type'];
@@ -41,7 +50,7 @@ function serve(phpFile, port) {
                 }
                 // handle this at some point by checking the content type header
             }
-            console.log(body);
+            //console.log(body);
             //console.log(requestData, urlObj);
             const cacheFile = makeid(12) + ".json";
             const cacheFilePath = path.join(cacheDir, cacheFile);
@@ -61,6 +70,10 @@ function serve(phpFile, port) {
                 if (error) {
                     console.log("Got error from php runner:", error);
                     return;
+                }
+
+                if (stderr) {
+                    console.log(stderr.trim());
                 }
             
                 //console.log(error, stdout, stderr);

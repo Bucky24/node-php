@@ -13,7 +13,7 @@
         }
     }
     
-    if (array_key_exists("body", $data)) {
+    if (array_key_exists("body", $data) && $data["body"] !== null) {
         foreach ($data['body'] as $key=>$value) {
             $_POST[$key] = $value;
             $_REQUEST[$key] = $value;
