@@ -1,0 +1,27 @@
+{
+  "name": "@bucky24/node-php",
+  "version": "0.1.0",
+  "description": "Allows running a PHP server via node.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bucky24/node-php.git"
+  },
+  "keywords": [
+    "node",
+    "php"
+  ],
+  "files": [
+      "index.js",
+      "php_runner.php"
+  ],
+  "author": "Bucky24",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Bucky24/node-php/issues"
+  },
+  "homepage": "https://github.com/Bucky24/node-php#readme"
+}
