@@ -26,6 +26,21 @@ function serve(phpFile, port) {
         throw new Error(`Main php file ${phpFile} could not be found`);
     }
     const server = http.createServer((req, res) => {
+        const resHeaders = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS, POST, GET, PATCH, DELETE, PUT',
+            'Access-Control-Allow-Headers': '*',
+            'Access-Control-Max-Age': 2592000, // 30 days
+        };
+
+        //console.log(req.method);
+
+        if (req.method === 'OPTIONS') {
+            res.writeHead(204, resHeaders);
+            res.end();
+            return;
+        }
+
         let requestData = '';
         req.on('data', chunk => {
             requestData += chunk.toString('utf8');
@@ -77,9 +92,9 @@ function serve(phpFile, port) {
                 }
             
                 //console.log(error, stdout, stderr);
-                res.writeHead(200, {
-                    'content-type': 'text/plain',
-                });
+                resHeaders['content-type'] = 'text/plain';
+                //console.log(resHeaders);
+                res.writeHead(200, resHeaders);
                 res.end(stdout);
             });
         });
