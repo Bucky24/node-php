@@ -35,7 +35,7 @@ Example:
 const serve = require("@bucky24/node-php");
 const path = require("path");
 
-serve(path.join(__dirname, "main.php", 80);
+serve(path.join(__dirname, "main.php"), 80);
 ```
 
 # Server Oddities
