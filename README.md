@@ -42,6 +42,8 @@ serve(path.join(__dirname, "main.php"), 80);
 
 This module is extremely feature-lean. To that effect, there are the following limitations:
 
-* Request bodies are only recognized if they are JSON formatted, and the content-type header is set to text/json
-* All responses from the server are sent with content-type text/plain
+* Not all request bodies are recognized. The system can recognize the following types:
+    * application/json
+    * application/x-www-form-urlencoded
+* All responses from the server are sent with content-type text/html
 * Any parameters in the query string will be overwritten in the $_REQUEST object by any duplicated keys in the request body. I'm not completely sure how PHP/Apache handles this normally.

@@ -60,10 +60,16 @@ function serve(phpFile, port) {
             let body = null;
             if (requestData !== '') {
                 const type = headers['content-type'];
-                if (type === 'text/json') {
+                if (type === 'application/json') {
                     body = JSON.parse(requestData);
+                } else if (type === "application/x-www-form-urlencoded") {
+                    const requestList = requestData.split("&");
+                    body = {};
+                    for (const request of requestList) {
+                        const [key, value] = request.split("=");
+                        body[key] = decodeURIComponent(value);
+                    }
                 }
-                // handle this at some point by checking the content type header
             }
             //console.log(body);
             //console.log(requestData, urlObj);
@@ -92,7 +98,7 @@ function serve(phpFile, port) {
                 }
             
                 //console.log(error, stdout, stderr);
-                resHeaders['content-type'] = 'text/plain';
+                resHeaders['content-type'] = 'text/html';
                 //console.log(resHeaders);
                 res.writeHead(200, resHeaders);
                 res.end(stdout);
