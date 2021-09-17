@@ -80,6 +80,8 @@ function serve(phpFile, port) {
                 file: phpFile,
                 query: urlObj.query,
                 body,
+                // need to verify what PHP normally does here
+                request_uri: urlObj.pathname,
             };
         
             fs.writeFileSync(cacheFilePath, JSON.stringify(dataObject));

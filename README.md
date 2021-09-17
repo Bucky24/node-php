@@ -38,7 +38,7 @@ const path = require("path");
 serve(path.join(__dirname, "main.php"), 80);
 ```
 
-# Server Oddities
+# Server Limitations
 
 This module is extremely feature-lean. To that effect, there are the following limitations:
 
@@ -47,3 +47,10 @@ This module is extremely feature-lean. To that effect, there are the following l
     * application/x-www-form-urlencoded
 * All responses from the server are sent with content-type text/html
 * Any parameters in the query string will be overwritten in the $_REQUEST object by any duplicated keys in the request body. I'm not completely sure how PHP/Apache handles this normally.
+
+The module only sets the following properties:
+
+* $_REQUEST - all valid values
+* $_GET - all valid values
+* $_POST - all valid values
+* $_SERVER['REQUEST_URI']

@@ -1,0 +1,5 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteRule ^path/(.+)?$ /index.php?path=$1 [R,L]
+</IfModule>
