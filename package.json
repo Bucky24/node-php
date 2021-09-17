@@ -1,6 +1,6 @@
 {
   "name": "@bucky24/node-php",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Allows running a PHP server via node.",
   "main": "index.js",
   "scripts": {},
@@ -13,8 +13,8 @@
     "php"
   ],
   "files": [
-      "index.js",
-      "php_runner.php"
+    "index.js",
+    "php_runner.php"
   ],
   "author": "Bucky24",
   "license": "MIT",

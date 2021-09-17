@@ -26,16 +26,15 @@ The serve method takes in the following parameters:
 
 | Param | Type | Description |
 |---|---|---|
-| phpFile | File Path as String | The main PHP entry point. Required |
+| mainDirectory | File Path as String | The directory of the main php code. Required |
 | port | Integer | The port to start the http server on. Required |
 
 Example:
 
 ```
 const serve = require("@bucky24/node-php");
-const path = require("path");
 
-serve(path.join(__dirname, "main.php"), 80);
+serve(__dirname, 80);
 ```
 
 # Server Limitations
@@ -54,3 +53,10 @@ The module only sets the following properties:
 * $_GET - all valid values
 * $_POST - all valid values
 * $_SERVER['REQUEST_URI']
+
+The module provides extremely limited .htaccess parsing:
+
+* Only handles .htaccess in the starting directory
+* Only handles mod_rewrite.c
+* Only handles simple URL rewriting using RewriteRule
+* Does not handle RewriteCond
