@@ -60,3 +60,5 @@ The module provides extremely limited .htaccess parsing:
 * Only handles mod_rewrite.c
 * Only handles simple URL rewriting using RewriteRule
 * Does not handle RewriteCond
+* URLs are not redirected by default (the [R] flag will have no effect)
+* All existing parameters are appended to the new URL (the [QSA] is on by default)
