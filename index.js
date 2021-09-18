@@ -21,7 +21,12 @@ function makeid(length) {
    return result;
 }
 
-function serve(directory, port) {
+const extensionToType = {
+    ".html": "text/html",
+    ".js": "text/javascript",
+};
+
+function serve(directory, port, staticDir = null) {
     if (!fs.existsSync(directory)) {
         throw new Error(`Main directory file ${directory} could not be found`);
     }
@@ -175,19 +180,46 @@ function serve(directory, port) {
             
             let phpFile = urlObj.pathname;
             if (phpFile === "/") {
+                // attempt to load index.php, then index.html if you can't find that. If we can't find either, just give up
                 phpFile = "index.php";
+                
+                let fullFilePath = path.join(directory, phpFile);
+                if (!fs.existsSync(fullFilePath)) {
+                    phpFile = "index.html";
+                }
             }
             
-            const fullPhpPath = path.join(directory, phpFile);
+            let fullFilePath = path.join(directory, phpFile);
+            const ext = path.extname(fullFilePath);
+
+            if (ext !== ".php") {
+                // attempt to serve the file from the static directory
+                const staticFile = path.join(staticDir || directory, phpFile);
+                fullFilePath = staticFile;
+            }
             
-            if (!fs.existsSync(fullPhpPath)) {
+            if (!fs.existsSync(fullFilePath)) {
                 res.writeHead(404);
                 res.end();
                 return;
             }
+
+            if (ext !== ".php") {
+                // just serve the file normally
+                console.log('Serving static file', fullFilePath);
+                const stat = fs.statSync(fullFilePath);
+                res.writeHead(200, {
+                    'Content-Type': extensionToType[ext] || "text/plain",
+                    'Content-Length': stat.size,
+                });
+
+                const readStream = fs.createReadStream(fullFilePath);
+                readStream.pipe(res);
+                return;
+            }
         
             const dataObject = {
-                file: fullPhpPath,
+                file: fullFilePath,
                 query: urlObj.query,
                 body,
                 // need to verify what PHP normally does here

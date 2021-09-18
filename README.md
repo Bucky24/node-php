@@ -28,6 +28,7 @@ The serve method takes in the following parameters:
 |---|---|---|
 | mainDirectory | File Path as String | The directory of the main php code. Required |
 | port | Integer | The port to start the http server on. Required |
+| staticDirectory | File Path as String | The directory where static files are to be found. Optional |
 
 Example:
 
@@ -37,8 +38,8 @@ const serve = require("@bucky24/node-php");
 serve(__dirname, 80);
 ```
 
-# Server Limitations
-
+# Server Capabilties and Limitations
+## Limitations
 This module is extremely feature-lean. To that effect, there are the following limitations:
 
 * Not all request bodies are recognized. The system can recognize the following types:
@@ -54,6 +55,7 @@ The module only sets the following properties:
 * $_POST - all valid values
 * $_SERVER['REQUEST_URI']
 
+## .htaccess
 The module provides extremely limited .htaccess parsing:
 
 * Only handles .htaccess in the starting directory
@@ -62,3 +64,10 @@ The module provides extremely limited .htaccess parsing:
 * Does not handle RewriteCond
 * All existing parameters are appended to the new URL (the [QSA] flag is on by default)
 * Any flag given is currently ignored
+
+## Other Capabilties
+
+The server will attempt to serve static files from the staticDirectory, using the mainDirectory as a backup.
+
+* Currently only html and js files will be sent back with the appropriate Content-Type set
+* The server will attempt to load an index.html file if it can't find an index.php in the mainDirectory
