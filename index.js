@@ -159,7 +159,9 @@ function serve(directory, port, staticDir = null) {
                 res.end();
                 return;
             }
+            const cacheFiles = [];
             let body = null;
+            const phpFiles = {};
             if (requestData !== '') {
                 const type = headers['content-type'];
                 if (type === 'application/json') {
@@ -171,12 +173,133 @@ function serve(directory, port, staticDir = null) {
                         const [key, value] = request.split("=");
                         body[key] = decodeURIComponent(value);
                     }
+                } else if (type.startsWith("multipart/form-data")) {
+                    // get the boundary
+                    const typeList = type.split(";");
+                    const paramList = typeList.slice(1);
+                    let boundary = null;
+                    paramList.forEach((param) => {
+                        let [key, value] = param.split("=");
+                        key = key.trim();
+                        if (key === "boundary") {
+                            boundary = value.trim();
+                        }
+                    });
+
+                    if (!boundary) {
+                        throw new Error("Couldn't get boundary of multipart data!");
+                    }
+
+                    const boundaryDelim = "--" + boundary;
+                    body = {};
+
+                    // this signals the end of the form input, we need it to be normal here
+                    requestData = requestData.replace(boundaryDelim + "--", boundaryDelim);
+
+                    //console.log(boundaryDelim);
+                    //console.log(requestData);
+
+                    //console.log("processing");
+                    const requestDataList = requestData.split(boundaryDelim);
+                    for (const dataItem of requestDataList) {
+                        //console.log("processing item");
+                        const metaData = [];
+                        const data = [];
+                        let gotAllMetaData = false;
+                        // we'll have some metadata with a carridge return line separating
+                        const lines = dataItem.split("\n");
+                        for (const line of lines) {
+                            const useLine = line.trim();
+                            //console.log([useLine]);
+                            if (useLine === "\r" || useLine === "") {
+                                if (metaData.length > 0) {
+                                    // we're now processing data
+                                    gotAllMetaData = true;
+                                }
+                            } else {
+                                if (!gotAllMetaData) {
+                                    metaData.push(useLine);
+                                } else {
+                                    data.push(useLine);
+                                }
+                            }
+                        }
+                        // if we didn't get any metadata it was just empty
+                        if (metaData.length === 0) {
+                            continue;
+                        }
+                        //console.log('got ', metaData, data);
+                        //console.log(dataItem);
+
+                        // now process the metadata to find out what we're dealing with
+                        const metaDataObj = {};
+                        for (const metaItem of metaData) {
+                            const metaRow = metaItem.split(";");
+                            for (let i=0;i<metaRow.length;i++) {
+                                const delim = i === 0 ? ":" : "=";
+                                let [key, value] = metaRow[i].split(delim);
+                                key = key.trim();
+                                value = value.trim();
+                                if (value.startsWith("\"") && value.endsWith("\"")) {
+                                    value = value.substr(1, value.length-2);
+                                }
+                                metaDataObj[key] = value;
+                            }
+                        }
+
+                        //console.log(metaDataObj);
+
+                        // now process
+                        if (!metaDataObj['Content-Disposition']) {
+                            throw new Error("No Content-Disposition metadata given for form data");
+                        }
+                        if (!metaDataObj['name']) {
+                            throw new Error("No name metadata given for form data");
+                        }
+
+                        if (metaDataObj['Content-Disposition'] !== "form-data") {
+                            throw new Error("Don't know how to handle Content-Disposition of \"" + metaDataObj['Content-Disposition'] + "\"");
+                        }
+
+                        const dataJoined = data.join("\n");
+
+                        if (metaDataObj['filename']) {
+                            //console.log('handle as file');
+                            if (!metaDataObj['Content-Type']) {
+                                throw new Error("No Content-Type metadata given for form data, expected for file");
+                            }
+                            if (!metaDataObj['Content-Type']) {
+                                throw new Error("No filename metadata given for form data, expected for file");
+                            }
+                            if (metaDataObj['Content-Type'] !== 'application/octet-stream') {
+                                throw new Error("Content-Type is \"" + metaDataObj['Content-Type'] + "\"-this system onloy knows how to handle application/octet-stream");
+                            }
+
+                            const fileData = {
+                                name: metaDataObj.filename,
+                            }
+
+                            // we need a temporary directory for the file data
+                            
+                            const cacheFile = makeid(12) + ".json";
+                            const cacheFilePath = path.join(cacheDir, cacheFile);
+                            cacheFiles.push(cacheFilePath);
+
+                            fs.writeFileSync(cacheFilePath, dataJoined);
+                            fileData.tmp_name = cacheFilePath;
+
+                            phpFiles[metaDataObj['name']] = fileData;
+                        } else {
+                            body[metaDataObj['name']] = dataJoined;
+                        }
+                    }
                 }
             }
             //console.log(body);
             //console.log(requestData, urlObj);
             const cacheFile = makeid(12) + ".json";
             const cacheFilePath = path.join(cacheDir, cacheFile);
+            cacheFiles.push(cacheFilePath);
             
             let phpFile = urlObj.pathname;
             if (phpFile === "/") {
@@ -222,6 +345,7 @@ function serve(directory, port, staticDir = null) {
                 file: fullFilePath,
                 query: urlObj.query,
                 body,
+                files: phpFiles,
                 // need to verify what PHP normally does here
                 request_uri: urlObj.pathname,
             };
@@ -231,7 +355,10 @@ function serve(directory, port, staticDir = null) {
             const command = `php ${path.join(__dirname, "php_runner.php")} ${cacheFilePath}`;
             //console.log(command);
             exec(command, (error, stdout, stderr) => {
-                fs.unlinkSync(cacheFilePath);
+                // unlink any other files we created in the cache
+                for (const cacheFile of cacheFiles) {
+                    fs.unlinkSync(cacheFile);
+                }
                 if (error) {
                     console.log("Got error from php runner:", error);
                     return;

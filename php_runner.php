@@ -23,6 +23,10 @@
     if (array_key_exists("request_uri", $data) && $data['request_uri'] !== null) {
         $_SERVER['REQUEST_URI'] = $data['request_uri'];
     }
+
+    if (array_key_exists("files", $data) && $data['files'] !== null) {
+        $_FILES = $data['files'];
+    }
     
     include_once($data['file']);
 ?>

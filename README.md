@@ -45,8 +45,10 @@ This module is extremely feature-lean. To that effect, there are the following l
 * Not all request bodies are recognized. The system can recognize the following types:
     * application/json
     * application/x-www-form-urlencoded
+    * multipart/form-data
 * All responses from the server are sent with content-type text/html
 * Any parameters in the query string will be overwritten in the $_REQUEST object by any duplicated keys in the request body. I'm not completely sure how PHP/Apache handles this normally.
+* For multipart data, the system will handle files sent with the rest. I have only tested it on plaintext files, and do not know if it handles binary.
 
 The module only sets the following properties:
 
@@ -70,4 +72,4 @@ The module provides extremely limited .htaccess parsing:
 The server will attempt to serve static files from the staticDirectory, using the mainDirectory as a backup.
 
 * Currently only html and js files will be sent back with the appropriate Content-Type set
-* The server will attempt to load an index.html file if it can't find an index.php in the mainDirectory
+* The server will attempt to load an index.html file from first the staticDirectory then the mainDirectory if it can't find an index.php in the mainDirectory
