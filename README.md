@@ -49,6 +49,9 @@ This module is extremely feature-lean. To that effect, there are the following l
 * All responses from the server are sent with content-type text/html
 * Any parameters in the query string will be overwritten in the $_REQUEST object by any duplicated keys in the request body. I'm not completely sure how PHP/Apache handles this normally.
 * For multipart data, the system will handle files sent with the rest. I have only tested it on plaintext files, and do not know if it handles binary.
+* For files, the system can recognize the following content types:
+    * application/octet-stream"
+    * text/csv
 
 The module only sets the following properties:
 

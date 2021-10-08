@@ -263,6 +263,11 @@ function serve(directory, port, staticDir = null) {
 
                         const dataJoined = data.join("\n");
 
+                        const acceptableTypes = [
+                            "application/octet-stream",
+                            "text/csv",
+                        ];
+
                         if (metaDataObj['filename']) {
                             //console.log('handle as file');
                             if (!metaDataObj['Content-Type']) {
@@ -271,8 +276,8 @@ function serve(directory, port, staticDir = null) {
                             if (!metaDataObj['Content-Type']) {
                                 throw new Error("No filename metadata given for form data, expected for file");
                             }
-                            if (metaDataObj['Content-Type'] !== 'application/octet-stream') {
-                                throw new Error("Content-Type is \"" + metaDataObj['Content-Type'] + "\"-this system onloy knows how to handle application/octet-stream");
+                            if (!acceptableTypes.includes(metaDataObj['Content-Type'])) {
+                                throw new Error("Content-Type is \"" + metaDataObj['Content-Type'] + "\"-this system onloy knows how to handle " + acceptableTypes.join(", "));
                             }
 
                             const fileData = {
