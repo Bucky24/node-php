@@ -5,6 +5,8 @@
     $data = json_decode($data, true);
     
     //print_r($data);
+	
+	chdir($data['baseDirectory']);
     
     if (array_key_exists("query", $data)) {
         foreach ($data['query'] as $key=>$value) {

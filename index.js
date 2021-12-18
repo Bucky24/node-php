@@ -362,6 +362,7 @@ function serve(directory, port, staticDir = null) {
                 // need to verify what PHP normally does here
                 request_uri: urlObj.pathname,
 				headers: processedRawHeaders,
+				baseDirectory: directory,
             };
         
             fs.writeFileSync(cacheFilePath, JSON.stringify(dataObject));
