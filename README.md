@@ -52,6 +52,7 @@ This module is extremely feature-lean. To that effect, there are the following l
 * For files, the system can recognize the following content types:
     * application/octet-stream"
     * text/csv
+* The server provides the `getallheaders` function, but it is experimental and may return unexpected data.
 
 The module only sets the following properties:
 

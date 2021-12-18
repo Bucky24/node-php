@@ -148,7 +148,7 @@ function serve(directory, port, staticDir = null) {
             requestData += chunk.toString('utf8');
         })
         req.on('end', () => {
-            const { headers, method } = req;
+            const { headers, method, rawHeaders } = req;
             //console.log(method);
             const urlObj = processUrl(req.url);
             //console.log(urlObj);
@@ -345,6 +345,14 @@ function serve(directory, port, staticDir = null) {
                 readStream.pipe(res);
                 return;
             }
+			
+			// process the raw headers into headers
+			const processedRawHeaders = {};
+			for (let i=0;i<rawHeaders.length;i+=2) {
+				const key = rawHeaders[i];
+				const value = rawHeaders[i+1];
+				processedRawHeaders[key] = value;
+			}
         
             const dataObject = {
                 file: fullFilePath,
@@ -353,6 +361,7 @@ function serve(directory, port, staticDir = null) {
                 files: phpFiles,
                 // need to verify what PHP normally does here
                 request_uri: urlObj.pathname,
+				headers: processedRawHeaders,
             };
         
             fs.writeFileSync(cacheFilePath, JSON.stringify(dataObject));

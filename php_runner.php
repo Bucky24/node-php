@@ -27,6 +27,13 @@
     if (array_key_exists("files", $data) && $data['files'] !== null) {
         $_FILES = $data['files'];
     }
+	
+	if (!function_exists("getallheaders")) {
+		function getallheaders() {
+			global $data;
+			return $data['headers'];
+		}
+	}
     
     include_once($data['file']);
 ?>
