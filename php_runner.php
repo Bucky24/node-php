@@ -1,4 +1,5 @@
 <?php
+	$metaData = array();
 
     function fatal_handler() {
         $error = error_get_last();
@@ -9,13 +10,13 @@
             $errline = $error["line"];
             $errstr  = $error["message"];
 
-            fwrite(STDERR, "Error on line $errline in file $errfile: $errstr");
+            print("Error on line $errline in file $errfile: $errstr\n");
         }
     }
 
     register_shutdown_function("fatal_handler");
-
-    $file = $argv[1];
+	
+	$file = getenv('QUERY_STRING');
     
     $data = file_get_contents($file);
     $data = json_decode($data, true);
@@ -52,6 +53,16 @@
 			return $data['headers'];
 		}
 	}
-    
+	
+	ob_start();
     include_once($data['file']);
+	$contents = ob_get_contents();
+	ob_clean();
+	print("----META----");
+
+	// currently unused
+	print json_encode($metaData);
+	
+	print("----RESULT----");
+	print($contents);
 ?>

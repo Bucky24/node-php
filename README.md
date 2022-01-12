@@ -46,13 +46,13 @@ This module is extremely feature-lean. To that effect, there are the following l
     * application/json
     * application/x-www-form-urlencoded
     * multipart/form-data
-* All responses from the server are sent with content-type text/html
 * Any parameters in the query string will be overwritten in the $_REQUEST object by any duplicated keys in the request body. I'm not completely sure how PHP/Apache handles this normally.
 * For multipart data, the system will handle files sent with the rest. I have only tested it on plaintext files, and do not know if it handles binary.
 * For files, the system can recognize the following content types:
-    * application/octet-stream"
+    * application/octet-stream
     * text/csv
 * The server provides the `getallheaders` function, but it is experimental and may return unexpected data.
+* The server will properly pass through any headers set by the php program to the response.
 
 The module only sets the following properties:
 
@@ -69,7 +69,8 @@ The module provides extremely limited .htaccess parsing:
 * Only handles simple URL rewriting using RewriteRule
 * Does not handle RewriteCond
 * All existing parameters are appended to the new URL (the [QSA] flag is on by default)
-* Any flag given is currently ignored
+* Handles the [R] flag correctly
+* Any other flag given is currently ignored
 
 ## Other Capabilties
 

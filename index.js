@@ -32,7 +32,8 @@ function serve(directory, port, staticDir = null) {
     }
     
     function processUrl(url) {
-        let obj = urlParse.parse(url, true);
+        let obj = {...urlParse.parse(url, true)};
+		let resultOptions = [];
         
         // check for htaccess
         const htaccessFile = path.join(directory, ".htaccess");
@@ -84,6 +85,14 @@ function serve(directory, port, staticDir = null) {
                         const template = ruleList.splice(0, 1)[0];
                         // if we have anything left, it's the options
                         const options = ruleList.length > 0 ? ruleList[0] : null;
+						const optionList = [];
+						if (options) {
+							const optionsStripped = options.substr(1, options.length-2);
+							const optionsListPre = optionsStripped.split(",");
+							optionsListPre.forEach((option) => {
+								optionList.push(option.trim());
+							});
+						}
                         
                         // cut off the first slash, since mod_rewrite doesn't expect it
                         const pathname = obj.pathname.substr(1);
@@ -100,6 +109,8 @@ function serve(directory, port, staticDir = null) {
                                     [`\$${index+1}`]: match,
                                 };
                             }, {});
+							
+							resultOptions = [...optionList];
                             
                             let newPathName = template;
                             Object.keys(params).forEach((key) => {
@@ -117,14 +128,20 @@ function serve(directory, port, staticDir = null) {
                                 }
                             }
                             
-                            obj = urlParse.parse(newUrl, true);
+                            obj = {
+								...obj,
+								...urlParse.parse(newUrl, true),
+							};
                         }
                     });
                 }
             });
         }
         
-        return obj;
+        return {
+			obj,
+			options: resultOptions,
+		};
     }
     
     const server = http.createServer((req, res) => {
@@ -150,8 +167,26 @@ function serve(directory, port, staticDir = null) {
         req.on('end', () => {
             const { headers, method, rawHeaders } = req;
             //console.log(method);
-            const urlObj = processUrl(req.url);
+            const { obj: urlObj, options } = processUrl(req.url);
             //console.log(urlObj);
+			
+			// process the raw headers into headers
+			const processedRawHeaders = {};
+			for (let i=0;i<rawHeaders.length;i+=2) {
+				const key = rawHeaders[i];
+				const value = rawHeaders[i+1];
+				processedRawHeaders[key] = value;
+			}
+			
+			const host = processedRawHeaders.Host;
+			
+			if (options.includes('R')) {
+				const newUrl = host ? 'http://' + host + urlObj.path : urlObj.path;
+				// we need to redirect to the new url and not continue
+				res.writeHead(302, { 'location': newUrl });
+				res.end();
+				return;
+			}
 
             if (urlObj.pathname === "/favicon.ico") {
                 // 404 for now
@@ -345,14 +380,6 @@ function serve(directory, port, staticDir = null) {
                 readStream.pipe(res);
                 return;
             }
-			
-			// process the raw headers into headers
-			const processedRawHeaders = {};
-			for (let i=0;i<rawHeaders.length;i+=2) {
-				const key = rawHeaders[i];
-				const value = rawHeaders[i+1];
-				processedRawHeaders[key] = value;
-			}
         
             const dataObject = {
                 file: fullFilePath,
@@ -367,9 +394,9 @@ function serve(directory, port, staticDir = null) {
         
             fs.writeFileSync(cacheFilePath, JSON.stringify(dataObject));
         
-            const command = `php ${path.join(__dirname, "php_runner.php")} ${cacheFilePath}`;
+            const command = `php-cgi ${path.join(__dirname, "php_runner.php")}`;
             //console.log(command);
-            exec(command, (error, stdout, stderr) => {
+            exec(command, { env: { 'QUERY_STRING': cacheFilePath } }, (error, stdout, stderr) => {
                 // unlink any other files we created in the cache
                 for (const cacheFile of cacheFiles) {
                     fs.unlinkSync(cacheFile);
@@ -382,12 +409,41 @@ function serve(directory, port, staticDir = null) {
                 if (stderr) {
                     console.log(stderr.trim());
                 }
-            
-                //console.log(error, stdout, stderr);
-                resHeaders['content-type'] = 'text/html';
-                //console.log(resHeaders);
-                res.writeHead(200, resHeaders);
-                res.end(stdout);
+
+				const [headers, rest] = stdout.split("----META----");
+				const [metaResult, result] = rest.split("----RESULT----");
+				const headerList = headers.split("\n");
+				if (metaResult.startsWith("{")) {
+                    // doesn't do anything yet
+					const metaObj = JSON.parse(metaResult);
+					//console.log(metaObj);
+				}
+				
+				const resultHeaders = {};
+				let overrideStatus = null;
+				headerList.forEach((header) => {
+					if (header.trim() === "") {
+						return;
+					}
+					let [key, val] = header.split(":");
+					val = val.trim();
+					if (key === 'location') {
+						key = 'Location';
+					}
+					if (key.toLowerCase() === 'status') {
+						// the php-cgi adds a name to it
+						const [num, ...rest] = val.split(" ");
+						val = num;
+						overrideStatus = num;
+					}
+					res.setHeader(key, val);
+				});
+				if (overrideStatus) {
+					res.statusCode = overrideStatus;
+				} else {
+					res.statusCode = 200;
+				}
+                res.end(result);
             });
         });
     });
