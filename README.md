@@ -53,6 +53,10 @@ This module is extremely feature-lean. To that effect, there are the following l
     * text/csv
 * The server provides the `getallheaders` function, but it is experimental and may return unexpected data.
 * The server will properly pass through any headers set by the php program to the response.
+* Other than php headers, the system will auto-handle the correct content type for:
+    * JS files
+    * CSS files
+    * HTML files
 
 The module only sets the following properties:
 

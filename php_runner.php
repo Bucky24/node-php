@@ -1,4 +1,6 @@
 <?php
+	ini_set('display_errors', '0');
+
 	$metaData = array();
 
     function fatal_handler() {
@@ -10,7 +12,7 @@
             $errline = $error["line"];
             $errstr  = $error["message"];
 
-            print("Error on line $errline in file $errfile: $errstr\n");
+            error_log("Error on line $errline in file $errfile: $errstr");
         }
     }
 
@@ -24,6 +26,8 @@
     //print_r($data);
 
     chdir($data['baseDirectory']);
+	set_include_path(get_include_path() . PATH_SEPARATOR . $data['baseDirectory']);
+	$_SERVER['DOCUMENT_ROOT'] = $data['baseDirectory'];
     
     if (array_key_exists("query", $data)) {
         foreach ($data['query'] as $key=>$value) {
@@ -46,6 +50,10 @@
     if (array_key_exists("files", $data) && $data['files'] !== null) {
         $_FILES = $data['files'];
     }
+	
+	if (array_key_exists("host", $data)) {
+		$_SERVER['HTTP_HOST'] = $data['host'];
+	}
 
     if (!function_exists("getallheaders")) {
 		function getallheaders() {
@@ -60,7 +68,6 @@
 	ob_clean();
 	print("----META----");
 
-	// currently unused
 	print json_encode($metaData);
 	
 	print("----RESULT----");

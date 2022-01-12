@@ -24,6 +24,7 @@ function makeid(length) {
 const extensionToType = {
     ".html": "text/html",
     ".js": "text/javascript",
+	".css": "text/css",
 };
 
 function serve(directory, port, staticDir = null) {
@@ -390,6 +391,7 @@ function serve(directory, port, staticDir = null) {
                 request_uri: urlObj.pathname,
 				headers: processedRawHeaders,
 				baseDirectory: directory,
+				host,
             };
         
             fs.writeFileSync(cacheFilePath, JSON.stringify(dataObject));
@@ -413,10 +415,10 @@ function serve(directory, port, staticDir = null) {
 				const [headers, rest] = stdout.split("----META----");
 				const [metaResult, result] = rest.split("----RESULT----");
 				const headerList = headers.split("\n");
+				//console.log(headers);
+				//console.log(metaResult);
 				if (metaResult.startsWith("{")) {
-                    // doesn't do anything yet
 					const metaObj = JSON.parse(metaResult);
-					//console.log(metaObj);
 				}
 				
 				const resultHeaders = {};
