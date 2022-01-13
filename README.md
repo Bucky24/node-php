@@ -53,10 +53,6 @@ This module is extremely feature-lean. To that effect, there are the following l
     * text/csv
 * The server provides the `getallheaders` function, but it is experimental and may return unexpected data.
 * The server will properly pass through any headers set by the php program to the response.
-* Other than php headers, the system will auto-handle the correct content type for:
-    * JS files
-    * CSS files
-    * HTML files
 
 The module only sets the following properties:
 
@@ -82,5 +78,5 @@ The module provides extremely limited .htaccess parsing:
 
 The server will attempt to serve static files from the staticDirectory, using the mainDirectory as a backup.
 
-* Currently only html and js files will be sent back with the appropriate Content-Type set
+* Currently only html, js, and css files will be sent back with the appropriate Content-Type set
 * The server will attempt to load an index.html file from first the staticDirectory then the mainDirectory if it can't find an index.php in the mainDirectory
