@@ -64,6 +64,7 @@ The module only sets the following properties:
 * $_GET - all valid values
 * $_POST - all valid values
 * $_SERVER['REQUEST_URI']
+* $_SESSION - any previously set session value (that can be serialized to JSON)
 
 ## .htaccess
 The module provides extremely limited .htaccess parsing:

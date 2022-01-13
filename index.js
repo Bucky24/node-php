@@ -370,7 +370,7 @@ function serve(directory, port, staticDir = null) {
 
             if (ext !== ".php") {
                 // just serve the file normally
-                console.log('Serving static file', fullFilePath);
+                // console.log('Serving static file', fullFilePath);
                 const stat = fs.statSync(fullFilePath);
                 res.writeHead(200, {
                     'Content-Type': extensionToType[ext] || "text/plain",
@@ -381,6 +381,23 @@ function serve(directory, port, staticDir = null) {
                 readStream.pipe(res);
                 return;
             }
+			
+			let sessionData = null;
+			let currentSession = null;
+			if (processedRawHeaders.Cookie) {
+				const cookies = processedRawHeaders.Cookie.split("; ");
+				//console.log(cookies);
+				for (const cookie of cookies) {
+					const [key, value] = cookie.split("=");
+					if (key === 'PHPSESSID') {
+						const fileName = path.join(cacheDir, `session_${value}.json`);
+						if (fs.existsSync(fileName)) {
+							sessionData = JSON.parse(fs.readFileSync(fileName, 'utf8'));
+							currentSession = value;
+						}
+					}
+				}
+			}
         
             const dataObject = {
                 file: fullFilePath,
@@ -392,6 +409,7 @@ function serve(directory, port, staticDir = null) {
 				headers: processedRawHeaders,
 				baseDirectory: directory,
 				host,
+				sessionData,
             };
         
             fs.writeFileSync(cacheFilePath, JSON.stringify(dataObject));
@@ -417,10 +435,6 @@ function serve(directory, port, staticDir = null) {
 				const headerList = headers.split("\n");
 				//console.log(headers);
 				//console.log(metaResult);
-				if (metaResult.startsWith("{")) {
-					const metaObj = JSON.parse(metaResult);
-				}
-				
 				const resultHeaders = {};
 				let overrideStatus = null;
 				headerList.forEach((header) => {
@@ -439,7 +453,37 @@ function serve(directory, port, staticDir = null) {
 						overrideStatus = num;
 					}
 					res.setHeader(key, val);
+					if (!resultHeaders[key]) {
+						resultHeaders[key] = [];
+					}
+					resultHeaders[key].push(val);
 				});
+				
+				if (metaResult.startsWith("{")) {
+					const metaObj = JSON.parse(metaResult);
+					
+					//console.log(metaObj);
+					if (resultHeaders['Set-Cookie']) {
+						const cookies = resultHeaders['Set-Cookie'];
+						for (const cookie of cookies) {
+							const pairs = cookie.split(";");
+							const cookiePair = pairs[0];
+							const [key, value] = cookiePair.split("=");
+							if (key === 'PHPSESSID') {
+								//console.log('Got session id', value);
+								if (currentSession) {
+									// remove the old session since we are about to write a new one
+									const fileName = path.join(cacheDir, `session_${currentSession}.json`);
+									fs.unlinkSync(fileName);
+								}
+								const fileName = path.join(cacheDir, `session_${value}.json`);
+								fs.writeFileSync(fileName, JSON.stringify(metaObj.session));
+								break;
+							}
+						}
+					}
+				}
+				
 				if (overrideStatus) {
 					res.statusCode = overrideStatus;
 				} else {

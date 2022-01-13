@@ -54,6 +54,13 @@
 	if (array_key_exists("host", $data)) {
 		$_SERVER['HTTP_HOST'] = $data['host'];
 	}
+	
+	if (array_key_exists("sessionData", $data)) {
+		session_start();
+		foreach ($data['sessionData'] as $key => $value) {
+			$_SESSION[$key] = $value;
+		}
+	}
 
     if (!function_exists("getallheaders")) {
 		function getallheaders() {
@@ -66,8 +73,11 @@
     include_once($data['file']);
 	$contents = ob_get_contents();
 	ob_clean();
+	
+	$metaData['session'] = $_SESSION;
+	
 	print("----META----");
-
+	
 	print json_encode($metaData);
 	
 	print("----RESULT----");
