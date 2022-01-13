@@ -56,6 +56,7 @@
 	}
 	
 	if (array_key_exists("sessionData", $data)) {
+        // this causes problems, need to do something better than this
 		session_start();
 		foreach ($data['sessionData'] as $key => $value) {
 			$_SESSION[$key] = $value;
