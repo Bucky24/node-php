@@ -59,7 +59,10 @@ The module only sets the following properties:
 * $_REQUEST - all valid values
 * $_GET - all valid values
 * $_POST - all valid values
-* $_SERVER['REQUEST_URI']
+* $_SERVER
+    * REQUEST_URI
+    * DOCUMENT_ROOT
+    * HTTP_HOST
 * $_SESSION - any previously set session value (that can be serialized to JSON)
     * Note that in order to make this currently work, session_start is called before any PHP code is run. In order to prevent errors you may need to check session status before starting the session yourself.
 
