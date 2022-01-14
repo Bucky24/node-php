@@ -55,7 +55,7 @@
 		$_SERVER['HTTP_HOST'] = $data['host'];
 	}
 	
-	if (array_key_exists("sessionData", $data)) {
+	if (array_key_exists("sessionData", $data) && $data["sessionData"] !== null) {
         // this causes problems, need to do something better than this
 		session_start();
 		foreach ($data['sessionData'] as $key => $value) {
@@ -75,7 +75,9 @@
 	$contents = ob_get_contents();
 	ob_clean();
 	
-	$metaData['session'] = $_SESSION;
+    if (isset($_SESSION)) {
+        $metaData['session'] = $_SESSION;
+    }
 	
 	print("----META----");
 	
