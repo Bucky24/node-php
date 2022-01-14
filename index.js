@@ -207,7 +207,46 @@ function serve(directory, port, staticDir = null) {
                     body = {};
                     for (const request of requestList) {
                         const [key, value] = request.split("=");
-                        body[key] = decodeURIComponent(value);
+						const decodedKey = decodeURIComponent(key);
+						let useKey = decodedKey;
+						
+						if (decodedKey.includes("[")) {
+							const keyList = [];
+							let buffer = '';
+							const firstPos = decodedKey.indexOf("[");
+							keyList.push(decodedKey.substr(0, firstPos));
+							for (let i=firstPos;i<decodedKey.length;i++) {
+								const char = decodedKey[i];
+								if (char === '[' || char === ']') {
+									if (buffer.length > 0) {
+										keyList.push(buffer);
+										buffer = '';
+									}
+								} else {
+									buffer += char;
+								}
+							}
+							
+							const setInObj = (obj, keyList, value) => {
+								if (keyList.length === 1) {
+									obj[keyList[0]] = value;
+									return;
+								}
+								
+								const key = keyList.shift();
+								if (!obj[key]) {
+									const newObj = {};
+									setInObj(newObj, keyList, value);
+									obj[key] = newObj;
+								} else {
+									setInObj(obj[key], keyList, value);
+								}
+							}
+
+							setInObj(body, keyList, decodeURIComponent(value));
+						} else {
+                        	body[useKey] = decodeURIComponent(value);
+						}
                     }
                 } else if (type.startsWith("multipart/form-data")) {
                     // get the boundary

@@ -45,7 +45,7 @@ This module is extremely feature-lean. To that effect, there are the following l
 * Not all request bodies are recognized. The system can recognize the following types:
     * application/json
     * application/x-www-form-urlencoded
-    * multipart/form-data
+    * multipart/form-data (this includes nested form data)
 * Any parameters in the query string will be overwritten in the $_REQUEST object by any duplicated keys in the request body. I'm not completely sure how PHP/Apache handles this normally.
 * For multipart data, the system will handle files sent with the rest. I have only tested it on plaintext files, and do not know if it handles binary.
 * For files, the system can recognize the following content types:
