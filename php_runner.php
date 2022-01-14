@@ -1,8 +1,6 @@
 <?php
 	ini_set('display_errors', '0');
 
-	$metaData = array();
-
     function fatal_handler() {
         $error = error_get_last();
 
@@ -54,14 +52,18 @@
 	if (array_key_exists("host", $data)) {
 		$_SERVER['HTTP_HOST'] = $data['host'];
 	}
-	
-	if (array_key_exists("sessionData", $data) && $data["sessionData"] !== null) {
-        // this causes problems, need to do something better than this
-		session_start();
-		foreach ($data['sessionData'] as $key => $value) {
-			$_SESSION[$key] = $value;
-		}
-	}
+
+    foreach ($data['headers'] as $key=>$header) {
+        if ($key === "Cookie") {
+            $cookies = explode("; ", $header);
+            foreach ($cookies as $cookie) {
+                $cookieList = explode("=", $cookie);
+                $_COOKIE[$cookieList[0]] = $cookieList[1];
+            }
+        }
+    }
+
+    session_save_path($data['sessionPath']);
 
     if (!function_exists("getallheaders")) {
 		function getallheaders() {
@@ -70,19 +72,5 @@
 		}
 	}
 	
-	ob_start();
     include_once($data['file']);
-	$contents = ob_get_contents();
-	ob_clean();
-	
-    if (isset($_SESSION)) {
-        $metaData['session'] = $_SESSION;
-    }
-	
-	print("----META----");
-	
-	print json_encode($metaData);
-	
-	print("----RESULT----");
-	print($contents);
 ?>

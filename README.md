@@ -52,7 +52,7 @@ This module is extremely feature-lean. To that effect, there are the following l
     * application/octet-stream
     * text/csv
 * The server provides the `getallheaders` function, but it is experimental and may return unexpected data.
-* The server will properly pass through any headers set by the php program to the response.
+* The server will properly pass through any headers set by the php server to the client. Headers may not be correctly populated from the client.
 
 The module only sets the following properties:
 
@@ -63,8 +63,8 @@ The module only sets the following properties:
     * REQUEST_URI
     * DOCUMENT_ROOT
     * HTTP_HOST
-* $_SESSION - any previously set session value (that can be serialized to JSON)
-    * Note that in order to make this currently work, session_start is called before any PHP code is run. In order to prevent errors you may need to check session status before starting the session yourself.
+* $_SESSION - This is handled automatically by PHP, but does work correctly with this module.
+* $_COOKIE - contains raw cookie data
 
 ## .htaccess
 The module provides extremely limited .htaccess parsing:
