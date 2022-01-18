@@ -209,31 +209,40 @@ function serve(directory, port, staticDir = null) {
                         const [key, value] = request.split("=");
 						const decodedKey = decodeURIComponent(key);
 						let useKey = decodedKey;
-						
 						if (decodedKey.includes("[")) {
 							const keyList = [];
 							let buffer = '';
+							let blockOpen = false;
 							const firstPos = decodedKey.indexOf("[");
 							keyList.push(decodedKey.substr(0, firstPos));
 							for (let i=firstPos;i<decodedKey.length;i++) {
 								const char = decodedKey[i];
 								if (char === '[' || char === ']') {
-									if (buffer.length > 0) {
+									if (buffer.length > 0 || blockOpen) {
 										keyList.push(buffer);
 										buffer = '';
+									}
+									if (char === '[') {
+										blockOpen = true;
+									} else if (char === ']') {
+										blockOpen = false;
 									}
 								} else {
 									buffer += char;
 								}
 							}
 							
-							const setInObj = (obj, keyList, value) => {
-								if (keyList.length === 1) {
-									obj[keyList[0]] = value;
+							const setInObj = (obj, keyList, value) => {	
+								let key = keyList.shift();
+								if (key === '') {
+									// in this case we need to append to an array
+									key = Object.keys(obj).length;
+								}
+								if (keyList.length === 0) {
+									obj[key] = value;
 									return;
 								}
 								
-								const key = keyList.shift();
 								if (!obj[key]) {
 									const newObj = {};
 									setInObj(newObj, keyList, value);
