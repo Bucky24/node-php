@@ -469,7 +469,9 @@ function serve(directory, port, staticDir = null) {
 					if (header.trim() === "") {
 						return;
 					}
-					let [key, val] = header.split(":");
+					let [key, ...rest] = header.split(":");
+					// handle the case when the header value has a colon in it
+					let val = rest.join(':');
 					val = val.trim();
 					if (key === 'location') {
 						key = 'Location';
