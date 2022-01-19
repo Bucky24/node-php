@@ -53,6 +53,8 @@
 		$_SERVER['HTTP_HOST'] = $data['host'];
 		$_SERVER['SERVER_NAME'] = $data['host'];
 	}
+	
+	$_SERVER['HTTPS'] = 'off';
 
     foreach ($data['headers'] as $key=>$header) {
         if ($key === "Cookie") {
