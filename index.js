@@ -252,7 +252,9 @@ function serve(directory, port, staticDir = null) {
 								}
 							}
 
-							setInObj(body, keyList, decodeURIComponent(value));
+							let useValue = value.replaceAll("+", " ");
+							useValue = decodeURIComponent(useValue);
+							setInObj(body, keyList, useValue);
 						} else {
                         	body[useKey] = decodeURIComponent(value);
 						}
