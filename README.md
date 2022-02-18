@@ -29,6 +29,7 @@ The serve method takes in the following parameters:
 | mainDirectory | File Path as String | The directory of the main php code. Required |
 | port | Integer | The port to start the http server on. Required |
 | staticDirectory | File Path as String | The directory where static files are to be found. Optional |
+| phpDirectory | File Path as String | The directory where the php-cgi binary is located. You can set this to override where the module looks for the php binary. Optional |
 
 Example:
 

@@ -27,7 +27,7 @@ const extensionToType = {
 	".css": "text/css",
 };
 
-function serve(directory, port, staticDir = null) {
+function serve(directory, port, staticDir = null, phpPath = null) {
     if (!fs.existsSync(directory)) {
         throw new Error(`Main directory file ${directory} could not be found`);
     }
@@ -447,7 +447,11 @@ function serve(directory, port, staticDir = null) {
         
             fs.writeFileSync(cacheFilePath, JSON.stringify(dataObject));
         
-            const command = `php-cgi ${path.join(__dirname, "php_runner.php")}`;
+			let phpCommand = 'php-cgi';
+			if (phpPath) {
+				phpCommand = path.join(phpPath, 'php-cgi');
+			}
+            const command = `${phpCommand} ${path.join(__dirname, "php_runner.php")}`;
             //console.log(command);
             exec(command, { env: { 'QUERY_STRING': cacheFilePath } }, (error, stdout, stderr) => {
                 // unlink any other files we created in the cache
@@ -462,8 +466,11 @@ function serve(directory, port, staticDir = null) {
                 if (stderr) {
                     console.log(stderr.trim());
                 }
+				
+				//console.log("all stdout ", stdout);
 
-				const [headers, result] = stdout.split("\r\n\r\n");
+				const [headers, ...rest] = stdout.split("\r\n\r\n");
+				const result = rest.join('\r\n\r\n');
 				const headerList = headers.split("\n");
 				const resultHeaders = {};
 				let overrideStatus = null;
@@ -496,7 +503,8 @@ function serve(directory, port, staticDir = null) {
 				} else {
 					res.statusCode = 200;
 				}
-                res.end(result);
+				res.write(result);
+                res.end();
             });
         });
     });
