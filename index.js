@@ -25,6 +25,7 @@ const extensionToType = {
     ".html": "text/html",
     ".js": "text/javascript",
 	".css": "text/css",
+	".svg": "image/svg+xml",
 };
 
 function serve(directory, port, staticDir = null, phpPath = null) {
@@ -256,7 +257,8 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 							useValue = decodeURIComponent(useValue);
 							setInObj(body, keyList, useValue);
 						} else {
-                        	body[useKey] = decodeURIComponent(value);
+							let useValue = value.replaceAll("+", " ");
+                        	body[useKey] = decodeURIComponent(useValue);
 						}
                     }
                 } else if (type.startsWith("multipart/form-data")) {

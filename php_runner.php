@@ -26,6 +26,9 @@
     chdir($data['baseDirectory']);
 	set_include_path(get_include_path() . PATH_SEPARATOR . $data['baseDirectory']);
 	$_SERVER['DOCUMENT_ROOT'] = $data['baseDirectory'];
+	
+	// php-cgi puts the calling script in as a request param and we don't want that
+	$_REQUEST = array();
     
     if (array_key_exists("query", $data)) {
         foreach ($data['query'] as $key=>$value) {
