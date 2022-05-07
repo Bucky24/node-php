@@ -440,7 +440,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
                 body,
                 files: phpFiles,
                 // need to verify what PHP normally does here
-                request_uri: urlObj.pathname,
+                request_uri: urlObj.path,
 				headers: processedRawHeaders,
 				baseDirectory: directory,
 				host,
@@ -455,7 +455,12 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 			}
             const command = `${phpCommand} ${path.join(__dirname, "php_runner.php")}`;
             //console.log(command);
-            exec(command, { env: { 'QUERY_STRING': cacheFilePath } }, (error, stdout, stderr) => {
+            exec(command, {
+				env: {
+					'QUERY_STRING': cacheFilePath,
+				}, 
+				maxBuffer: 5 * 1024 * 1024,
+			}, (error, stdout, stderr) => {
                 // unlink any other files we created in the cache
                 for (const cacheFile of cacheFiles) {
                     fs.unlinkSync(cacheFile);

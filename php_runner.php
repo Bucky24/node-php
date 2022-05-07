@@ -1,5 +1,6 @@
 <?php
 	ini_set('display_errors', '0');
+	ini_set('memory_limit','2168M');
 
     function fatal_handler() {
         $error = error_get_last();
@@ -43,6 +44,18 @@
             $_REQUEST[$key] = $value;
         }
     }
+	
+    foreach ($data['headers'] as $key=>$header) {
+        if ($key === "Cookie") {
+            $cookies = explode("; ", $header);
+            foreach ($cookies as $cookie) {
+                $cookieList = explode("=", $cookie);
+                $_COOKIE[$cookieList[0]] = $cookieList[1];
+            }
+        }
+		
+		$_SERVER[$key] = $header;
+    }
 
     if (array_key_exists("request_uri", $data) && $data['request_uri'] !== null) {
         $_SERVER['REQUEST_URI'] = $data['request_uri'];
@@ -59,24 +72,7 @@
 	
 	$_SERVER['HTTPS'] = 'off';
 
-    foreach ($data['headers'] as $key=>$header) {
-        if ($key === "Cookie") {
-            $cookies = explode("; ", $header);
-            foreach ($cookies as $cookie) {
-                $cookieList = explode("=", $cookie);
-                $_COOKIE[$cookieList[0]] = $cookieList[1];
-            }
-        }
-    }
-
     session_save_path($data['sessionPath']);
-
-    if (!function_exists("getallheaders")) {
-		function getallheaders() {
-			global $data;
-			return $data['headers'];
-		}
-	}
 	
     include_once($data['file']);
 ?>

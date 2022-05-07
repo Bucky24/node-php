@@ -52,8 +52,7 @@ This module is extremely feature-lean. To that effect, there are the following l
 * For files, the system can recognize the following content types:
     * application/octet-stream
     * text/csv
-* The server provides the `getallheaders` function, but it is experimental and may return unexpected data.
-* The server will properly pass through any headers set by the php server to the client. Headers may not be correctly populated from the client.
+* The server will properly pass through any headers set by the php server to the client (into the $_SERVER variable). Headers may not be correctly populated from the client.
 
 The module only sets the following properties:
 
