@@ -21,6 +21,8 @@
     
     $data = file_get_contents($file);
     $data = json_decode($data, true);
+
+    ini_set("error_log", __DIR__ . "/error_log");
     
     //print_r($data);
 

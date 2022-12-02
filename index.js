@@ -170,7 +170,6 @@ function serve(directory, port, staticDir = null, phpPath = null) {
             const { headers, method, rawHeaders } = req;
             //console.log(method);
             const { obj: urlObj, options } = processUrl(req.url);
-            //console.log(urlObj);
 			
 			// process the raw headers into headers
 			const processedRawHeaders = {};
@@ -453,6 +452,9 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 			if (phpPath) {
 				phpCommand = path.join(phpPath, 'php-cgi');
 			}
+
+            const errorLogFile = path.join(__dirname, "error_log");
+            fs.unlinkSync(errorLogFile);
             const command = `${phpCommand} ${path.join(__dirname, "php_runner.php")}`;
             //console.log(command);
             exec(command, {
@@ -472,6 +474,11 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 
                 if (stderr) {
                     console.log(stderr.trim());
+                }
+
+                if (fs.existsSync(errorLogFile)) {
+                    const errorContents = fs.readFileSync(errorLogFile, "utf8");
+                    console.log(errorContents);
                 }
 				
 				//console.log("all stdout ", stdout);
