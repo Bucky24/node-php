@@ -454,7 +454,9 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 			}
 
             const errorLogFile = path.join(__dirname, "error_log");
-            fs.unlinkSync(errorLogFile);
+            if (fs.existsSync(errorLogFile)) {
+                fs.unlinkSync(errorLogFile);
+            }
             const command = `${phpCommand} ${path.join(__dirname, "php_runner.php")}`;
             //console.log(command);
             exec(command, {
