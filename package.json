@@ -1,6 +1,6 @@
 {
   "name": "@bucky24/node-php",
-  "version": "0.6.11",
+  "version": "0.6.12",
   "description": "Allows running a PHP server via node.",
   "main": "index.js",
   "scripts": {},

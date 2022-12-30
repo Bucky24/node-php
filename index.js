@@ -457,7 +457,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
             if (fs.existsSync(errorLogFile)) {
                 fs.unlinkSync(errorLogFile);
             }
-            const command = `${phpCommand} ${path.join(__dirname, "php_runner.php")}`;
+            const command = `${phpCommand} \"${path.join(__dirname, "php_runner.php")}\"`;
             //console.log(command);
             exec(command, {
 				env: {
@@ -465,22 +465,24 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 				}, 
 				maxBuffer: 5 * 1024 * 1024,
 			}, (error, stdout, stderr) => {
-                // unlink any other files we created in the cache
+                if (fs.existsSync(errorLogFile)) {
+                    const errorContents = fs.readFileSync(errorLogFile, "utf8");
+                    console.log(errorContents);
+                } else {
+                    if (error) {
+                        console.log("Got error from php runner and no error log was generated:", error);
+                        console.log("To replay, run\nQUERY_STRING=\"" + cacheFilePath + "\" " + command);
+                        return;
+                    }
+                }
+
+                // unlink any cache files
                 for (const cacheFile of cacheFiles) {
                     fs.unlinkSync(cacheFile);
-                }
-                if (error) {
-                    console.log("Got error from php runner:", error);
-                    return;
                 }
 
                 if (stderr) {
                     console.log(stderr.trim());
-                }
-
-                if (fs.existsSync(errorLogFile)) {
-                    const errorContents = fs.readFileSync(errorLogFile, "utf8");
-                    console.log(errorContents);
                 }
 				
 				//console.log("all stdout ", stdout);
