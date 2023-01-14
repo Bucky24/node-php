@@ -36,6 +36,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
     function processUrl(url) {
         let obj = {...urlParse.parse(url, true)};
 		let resultOptions = [];
+        const originalObj = {...obj};
         
         // check for htaccess
         const htaccessFile = path.join(directory, ".htaccess");
@@ -143,6 +144,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
         return {
 			obj,
 			options: resultOptions,
+            original: originalObj,
 		};
     }
     
@@ -169,7 +171,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
         req.on('end', () => {
             const { headers, method, rawHeaders } = req;
             //console.log(method);
-            const { obj: urlObj, options } = processUrl(req.url);
+            const { obj: urlObj, options, original: originalUrlObj } = processUrl(req.url);
 			
 			// process the raw headers into headers
 			const processedRawHeaders = {};
@@ -439,7 +441,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
                 body,
                 files: phpFiles,
                 // need to verify what PHP normally does here
-                request_uri: urlObj.path,
+                request_uri: originalUrlObj.path,
 				headers: processedRawHeaders,
 				baseDirectory: directory,
 				host,
