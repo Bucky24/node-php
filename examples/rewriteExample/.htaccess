@@ -2,4 +2,5 @@
     RewriteEngine On
 
     RewriteRule ^path/(.+)?$ /index.php?path=$1 [R,L]
+    RewriteRule ^path2/(.+)?$ /index.php?path=$1 [QSA]
 </IfModule>
