@@ -405,25 +405,9 @@ function serve(directory, port, staticDir = null, phpPath = null) {
                     phpFile = "index.html";
                 }
             }
-
-            // use the referrer to find out our actual path we came from. We use this to find out what parts of the path
-            // we need to remove from "phpFile" so we can actual figure out what path from the base directory
-            // we need to locate. This is because apache starts all file lookups from the base directory.
-            if (headers['referer']) {
-                const referObj = {...urlParse.parse(headers['referer'], true)};
-                const pathArr = referObj.path.split("/");
-                // If we have /foo/bar, then a request for /img/thing.png will come from /foo/img/thing.png. So we don't
-                // really care about /bar and so we can pop it off the stack
-                pathArr.pop();
-                const path = pathArr.join("/");
-                // now that we have the path
-                if (phpFile.startsWith(path)) {
-                    phpFile = phpFile.replace(path, "");
-                }
-            }
-
+            
             let fullFilePath = path.join(directory, phpFile);
-            const ext = path.extname(phpFile);
+            const ext = path.extname(fullFilePath);
 
             if (ext !== ".php") {
                 // attempt to serve the file from the static directory
