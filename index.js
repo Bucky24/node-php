@@ -395,17 +395,24 @@ function serve(directory, port, staticDir = null, phpPath = null) {
             cacheFiles.push(cacheFilePath);
             
             let phpFile = urlObj.pathname;
-            if (phpFile === "/") {
-                // attempt to load index.php, then index.html if you can't find that. If we can't find either, just give up
-                phpFile = "index.php";
-                
-                let fullFilePath = path.join(directory, phpFile);
-                if (!fs.existsSync(fullFilePath)) {
-                    phpFile = "index.html";
+            let fullFilePath = path.join(directory, phpFile);
+
+            if (fs.existsSync(fullFilePath)) {
+                // check if we're loading a directory, in which case try to get an index file
+                // if the file doesn't exist we will handle it below
+                const stats = fs.lstatSync(fullFilePath);
+                if (stats.isDirectory()) {
+                    // attempt to load index.php, then index.html if you can't find that. If we can't find either, just give up
+                    phpFile = "index.php";
+                    
+                    let newFilePath = path.join(fullFilePath, phpFile);
+                    if (!fs.existsSync(fullFilePath)) {
+                        phpFile = "index.html";
+                    }
+                    newFilePath = path.join(fullFilePath, phpFile);
+                    fullFilePath = newFilePath;
                 }
             }
-            
-            let fullFilePath = path.join(directory, phpFile);
             const ext = path.extname(fullFilePath);
 
             if (ext !== ".php") {
