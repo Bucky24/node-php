@@ -568,7 +568,9 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 
                 // unlink any cache files
                 for (const cacheFile of cacheFiles) {
-                    fs.unlinkSync(cacheFile);
+                    if (fs.existsSync(cacheFile)) {
+                        fs.unlinkSync(cacheFile);
+                    }
                 }
 
                 if (stderr) {
