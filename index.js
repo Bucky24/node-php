@@ -164,9 +164,11 @@ function serve(directory, port, staticDir = null, phpPath = null) {
         }
 
         let requestData = '';
+        let binaryBuffer = Buffer.from([], "binary");
         req.on('data', chunk => {
             requestData += chunk.toString('utf8');
-        })
+            binaryBuffer = Buffer.concat([binaryBuffer, chunk]);
+        });
         req.on('end', () => {
             const { headers, method, rawHeaders } = req;
             //console.log(method);
@@ -199,7 +201,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
             const cacheFiles = [];
             let body = null;
             const phpFiles = {};
-            if (requestData !== '') {
+            if (binaryBuffer.length > 0) {
                 const type = headers['content-type'];
                 if (type === 'application/json') {
                     body = JSON.parse(requestData);
@@ -281,109 +283,189 @@ function serve(directory, port, staticDir = null, phpPath = null) {
                     const boundaryDelim = "--" + boundary;
                     body = {};
 
-                    // this signals the end of the form input, we need it to be normal here
-                    requestData = requestData.replace(boundaryDelim + "--", boundaryDelim);
-
                     //console.log(boundaryDelim);
-                    //console.log(requestData);
 
-                    //console.log("processing");
-                    const requestDataList = requestData.split(boundaryDelim);
-                    for (const dataItem of requestDataList) {
-                        //console.log("processing item");
-                        const metaData = [];
-                        const data = [];
-                        let gotAllMetaData = false;
-                        // we'll have some metadata with a carridge return line separating
-                        const lines = dataItem.split("\n");
-                        for (const line of lines) {
-                            const useLine = line.trim();
-                            //console.log([useLine]);
-                            if (useLine === "\r" || useLine === "") {
-                                if (metaData.length > 0) {
-                                    // we're now processing data
-                                    gotAllMetaData = true;
-                                }
+                    const state = {
+                        state: 'none',
+                        buffer: '',
+                        headerData: {},
+                    };
+                    const items = [];
+                    // loop over all the binary data
+                    for (const num of binaryBuffer) {
+                        const char = String.fromCharCode(num);
+                        //console.log(state.state, num, char);
+                        if (state.state === "none") {
+                            const newBuffer = state.buffer + char;
+
+                            if (newBuffer === boundaryDelim) {
+                                state.state = "foundBoundary";
+                                state.buffer = "";
+                                continue;
                             } else {
-                                if (!gotAllMetaData) {
-                                    metaData.push(useLine);
-                                } else {
-                                    data.push(useLine);
-                                }
+                                state.buffer = newBuffer;
+                                continue;
                             }
-                        }
-                        // if we didn't get any metadata it was just empty
-                        if (metaData.length === 0) {
+                        } else if (state.state === "foundBoundary") {
+                            if (num === 13) {
+                                state.state = "foundCR";
+                                continue;
+                            } else if (char === "-") {
+                                if (!state.dashCount) {
+                                    state.dashCount = 0;
+                                }
+                                state.dashCount ++;
+
+                                if (state.dashCount === 2) {
+                                    console.log("end of data!");
+                                    // no reason to go further, this is the end of the data
+                                    break;
+                                }
+                                continue;
+                            }
+                        } else if (state.state === "foundCR") {
+                            if (num === 10) {
+                                state.state = "getHeader";
+                                state.buffer = "";
+                                continue;
+                            }
+                        } else if (state.state === "getHeader") {
+                            const newBuffer = state.buffer + char;
+
+                            if (char === ":") {
+                                state.header = newBuffer;
+                                state.state = "gettingParams";
+                                state.buffer = "";
+                                state.params = [];
+                            } else {
+                                state.buffer = newBuffer;
+                            }
+                            continue;
+                        } else if (state.state === "gettingParams") {
+                            if (char === ";") {
+                                //console.log("got param", state.buffer);
+                                state.params.push(state.buffer);
+                                state.buffer = "";
+                                continue;
+                            } else if (num === 13) {
+                                //console.log("got param", state.buffer);
+                                state.params.push(state.buffer);
+                                state.headerData[state.header] = state.params;
+                                delete state.params;
+                                state.buffer = "";
+                                state.state = "haveParams";
+                                state.lineCount = 0;
+                                state.foundCR = true;
+                                continue;
+                            } else {
+                                const newBuffer = state.buffer + char;
+                                state.buffer = newBuffer;
+                                continue;
+                            }
+                        } else if (state.state === "haveParams") {
+                            if (num === 10 && state.foundCR) {
+                                state.lineCount ++;
+                                state.foundCR = false;
+                                if (state.lineCount === 2) {
+                                    state.state = "expectingData";
+                                    state.binaryBuffer = [];
+                                }
+                                continue;
+                            } else if (num === 13 && !state.foundCR) {
+                                state.foundCR = true;
+                                continue;
+                            } else if (char == "C" && state.lineCount === 1) {
+                                state.state = "getHeader";
+                                state.buffer = "C";
+                                state.lineCount = 0;
+                                continue;
+                            }
+                        } else if (state.state === "expectingData") {
+                            const newBuffer = state.buffer + char;
+                            state.buffer = newBuffer;
+                            state.binaryBuffer.push(num);
+                            if (newBuffer.endsWith(boundaryDelim)) {
+                                const stopIndex = state.buffer.length - (2 + boundaryDelim.length);
+                                const dataWithoutBuffer = state.buffer.substring(0, state.buffer.length - (2 + boundaryDelim.length));
+                                const binaryWithoutBuffer = state.binaryBuffer.splice(0, stopIndex);
+                                //console.log('pushing item\n');
+                                const item = {
+                                    headers: state.headerData,
+                                    data: dataWithoutBuffer,
+                                    binaryData: binaryWithoutBuffer, 
+                                };
+                                state.buffer = "";
+                                state.state = "foundBoundary";
+                                delete state.binaryBuffer;
+                                state.headerData = [];
+                                items.push(item);
+                            }
+                            continue;
+                        } else if (state.state === "wtf") {
                             continue;
                         }
-                        //console.log('got ', metaData, data);
-                        //console.log(dataItem);
 
-                        // now process the metadata to find out what we're dealing with
-                        const metaDataObj = {};
-                        for (const metaItem of metaData) {
-                            const metaRow = metaItem.split(";");
-                            for (let i=0;i<metaRow.length;i++) {
-                                const delim = i === 0 ? ":" : "=";
-                                let [key, value] = metaRow[i].split(delim);
-                                key = key.trim();
-                                value = value.trim();
-                                if (value.startsWith("\"") && value.endsWith("\"")) {
-                                    value = value.substr(1, value.length-2);
+                        throw new Error("Unxpected state while processing: " + JSON.stringify(state) + " got " + num);
+                    }
+
+                    const processedItems = [];
+                    for (const item of items) {
+                        const resultItem = {
+                            data: item.data,
+                            binaryData: item.binaryData,
+                        };
+                        for (const header in item.headers) {
+                            const data = item.headers[header];
+
+                            //console.log(header, data);
+
+                            if (header === "Content-Disposition:") {
+                                if (data[0] !== " form-data") {
+                                    throw new Error("Expected first param of Content-Disposition to be 'form-data'");
                                 }
-                                metaDataObj[key] = value;
+
+                                for (let i=1;i<data.length;i++) {
+                                    const dataItem = data[i].trim();
+                                    //console.log(dataItem);
+                                    const [field, ...valueList] = dataItem.split("=");
+                                    let value = valueList.join("=");
+                                    // trim off the quotes
+                                    value = value.substring(1, value.length-1);
+                                    //console.log(field, value);
+                                    resultItem[field] = value;
+                                }
+                            } else {
+                                // trim the colon from the header
+                                resultItem[header.substring(0, header.length-1)] = data[0].trim();
                             }
                         }
 
-                        //console.log(metaDataObj);
+                        processedItems.push(resultItem);
+                    }
 
-                        // now process
-                        if (!metaDataObj['Content-Disposition']) {
-                            throw new Error("No Content-Disposition metadata given for form data");
-                        }
-                        if (!metaDataObj['name']) {
-                            throw new Error("No name metadata given for form data");
-                        }
-
-                        if (metaDataObj['Content-Disposition'] !== "form-data") {
-                            throw new Error("Don't know how to handle Content-Disposition of \"" + metaDataObj['Content-Disposition'] + "\"");
-                        }
-
-                        const dataJoined = data.join("\n");
-
-                        const acceptableTypes = [
-                            "application/octet-stream",
-                            "text/csv",
-                        ];
-
-                        if (metaDataObj['filename']) {
-                            //console.log('handle as file');
-                            if (!metaDataObj['Content-Type']) {
+                    for (const item of processedItems) {
+                        if (item.filename) {
+                            if (!item['Content-Type']) {
                                 throw new Error("No Content-Type metadata given for form data, expected for file");
-                            }
-                            if (!metaDataObj['Content-Type']) {
-                                throw new Error("No filename metadata given for form data, expected for file");
-                            }
-                            if (!acceptableTypes.includes(metaDataObj['Content-Type'])) {
-                                throw new Error("Content-Type is \"" + metaDataObj['Content-Type'] + "\"-this system onloy knows how to handle " + acceptableTypes.join(", "));
                             }
 
                             const fileData = {
-                                name: metaDataObj.filename,
+                                name: item.filename,
                             }
 
-                            // we need a temporary directory for the file data
+                            const ext = path.extname(item.filename);
                             
-                            const cacheFile = makeid(12) + ".json";
+                            const cacheFile = makeid(12) + ext;
+                            const buffer = Buffer.from(item.binaryData, "binary");
                             const cacheFilePath = path.join(cacheDir, cacheFile);
                             cacheFiles.push(cacheFilePath);
-
-                            fs.writeFileSync(cacheFilePath, dataJoined);
+                            
+                            fs.writeFileSync(cacheFilePath, buffer);
                             fileData.tmp_name = cacheFilePath;
 
-                            phpFiles[metaDataObj['name']] = fileData;
+                            phpFiles[item['name']] = fileData;
                         } else {
-                            body[metaDataObj['name']] = dataJoined;
+                            body[item.name] = item.data;
                         }
                     }
                 }

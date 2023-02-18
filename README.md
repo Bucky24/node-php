@@ -48,10 +48,7 @@ This module is extremely feature-lean. To that effect, there are the following l
     * application/x-www-form-urlencoded
     * multipart/form-data (this includes nested form data)
 * Any parameters in the query string will be overwritten in the $_REQUEST object by any duplicated keys in the request body. I'm not completely sure how PHP/Apache handles this normally.
-* For multipart data, the system will handle files sent with the rest. I have only tested it on plaintext files, and do not know if it handles binary.
-* For files, the system can recognize the following content types:
-    * application/octet-stream
-    * text/csv
+* For multipart data, the system will handle files sent. It should be able to handle any files. It uses the filename to determine the extension for the new file.
 * The server will properly pass through any headers set by the php server to the client (into the $_SERVER variable). Headers may not be correctly populated from the client.
 
 The module only sets the following properties:
