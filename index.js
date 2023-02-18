@@ -317,7 +317,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
                                 state.dashCount ++;
 
                                 if (state.dashCount === 2) {
-                                    console.log("end of data!");
+                                    //console.log("end of data!");
                                     // no reason to go further, this is the end of the data
                                     break;
                                 }
