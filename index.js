@@ -97,8 +97,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 							});
 						}
                         
-                        // cut off the first slash, since mod_rewrite doesn't expect it
-                        const pathname = obj.pathname.substr(1);
+                        const pathname = obj.pathname;
 
                         // attempt to match the regex
                         const matches = pathname.match(regex);
