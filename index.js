@@ -97,7 +97,9 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 							});
 						}
                         
-                        const pathname = obj.pathname;
+                        // remove the first slash because mod_rewrite doesn't want the trailing slash
+                        // DO NOT CHANGE THIS I HAVE TESTED IT ON APACHE. Look at the rewrite example.
+                        const pathname = obj.pathname.substring(1);
 
                         // attempt to match the regex
                         const matches = pathname.match(regex);
