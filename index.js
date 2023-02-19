@@ -217,7 +217,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 							let buffer = '';
 							let blockOpen = false;
 							const firstPos = decodedKey.indexOf("[");
-							keyList.push(decodedKey.substring(0, firstPos));
+							keyList.push(decodedKey.substr(0, firstPos));
 							for (let i=firstPos;i<decodedKey.length;i++) {
 								const char = decodedKey[i];
 								if (char === '[' || char === ']') {
@@ -465,15 +465,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 
                             phpFiles[item['name']] = fileData;
                         } else {
-                            if (item.name.endsWith("[]")) {
-                                const trueName = item.name.substring(0, item.name.length-2);
-                                if (!body[trueName]) {
-                                    body[trueName] = [];
-                                }
-                                body[trueName].push(item.data);
-                            } else {
-                                body[item.name] = item.data;
-                            }
+                            body[item.name] = item.data;
                         }
                     }
                 }
@@ -560,9 +552,11 @@ function serve(directory, port, staticDir = null, phpPath = null) {
             exec(command, {
 				env: {
 					'QUERY_STRING': cacheFilePath,
-				}, 
+				},
 				maxBuffer: 5 * 1024 * 1024,
+                encoding: "buffer",
 			}, (error, stdout, stderr) => {
+                stderr = stderr.toString();
                 if (fs.existsSync(errorLogFile)) {
                     const errorContents = fs.readFileSync(errorLogFile, "utf8");
                     console.log(errorContents);
@@ -581,6 +575,9 @@ function serve(directory, port, staticDir = null, phpPath = null) {
                     }
                 }
 
+                const stdoutBuffer = stdout;
+                stdout = stdout.toString();
+
                 if (stderr) {
                     console.log(stderr.trim());
                 }
@@ -589,6 +586,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 
 				const [headers, ...rest] = stdout.split("\r\n\r\n");
 				const result = rest.join('\r\n\r\n');
+
 				const headerList = headers.split("\n");
 				const resultHeaders = {};
 				let overrideStatus = null;
@@ -621,7 +619,40 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 				} else {
 					res.statusCode = 200;
 				}
-				res.write(result);
+
+                console.log(resultHeaders);
+
+                const type = resultHeaders['Content-Type'] ?? [''];
+
+                if (type[0].startsWith("image")) {
+                    // read until we get to the end of the headers
+                    let foundCR = false;
+                    let lines = 0;
+                    let count = 0;
+                    for (;count<stdoutBuffer.length;count++) {
+                        const num = stdoutBuffer[count];
+                        console.log(num);
+                        if (num === 13) {
+                            foundCR = true;
+                        } else if (num === 10) {
+                            if (foundCR) {
+                                lines ++;
+                                foundCR = false;
+                                if (lines == 2) {
+                                    break;
+                                }
+                            }
+                        } else {
+                            foundCR = false;
+                            lines = 0;
+                        }
+                    }
+
+                    // write the raw buffer not including headers
+                    res.write(stdoutBuffer.slice(count+1));
+                } else {
+				    res.write(result);
+                }
                 res.end();
             });
         });

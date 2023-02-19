@@ -50,6 +50,7 @@ This module is extremely feature-lean. To that effect, there are the following l
 * Any parameters in the query string will be overwritten in the $_REQUEST object by any duplicated keys in the request body. I'm not completely sure how PHP/Apache handles this normally.
 * For multipart data, the system will handle files sent. It should be able to handle any files. It uses the filename to determine the extension for the new file.
 * The server will properly pass through any headers set by the php server to the client (into the $_SERVER variable). Headers may not be correctly populated from the client.
+* The server might not be able to write binary data in some cases (any Content-Type set to an image should be supported)
 
 The module only sets the following properties:
 
