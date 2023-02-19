@@ -217,7 +217,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 							let buffer = '';
 							let blockOpen = false;
 							const firstPos = decodedKey.indexOf("[");
-							keyList.push(decodedKey.substr(0, firstPos));
+							keyList.push(decodedKey.substring(0, firstPos));
 							for (let i=firstPos;i<decodedKey.length;i++) {
 								const char = decodedKey[i];
 								if (char === '[' || char === ']') {
@@ -465,7 +465,15 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 
                             phpFiles[item['name']] = fileData;
                         } else {
-                            body[item.name] = item.data;
+                            if (item.name.endsWith("[]")) {
+                                const trueName = item.name.substring(0, item.name.length-2);
+                                if (!body[trueName]) {
+                                    body[trueName] = [];
+                                }
+                                body[trueName].push(item.data);
+                            } else {
+                                body[item.name] = item.data;
+                            }
                         }
                     }
                 }
