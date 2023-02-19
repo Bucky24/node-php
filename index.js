@@ -620,8 +620,6 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 					res.statusCode = 200;
 				}
 
-                console.log(resultHeaders);
-
                 const type = resultHeaders['Content-Type'] ?? [''];
 
                 if (type[0].startsWith("image")) {
@@ -631,7 +629,6 @@ function serve(directory, port, staticDir = null, phpPath = null) {
                     let count = 0;
                     for (;count<stdoutBuffer.length;count++) {
                         const num = stdoutBuffer[count];
-                        console.log(num);
                         if (num === 13) {
                             foundCR = true;
                         } else if (num === 10) {
