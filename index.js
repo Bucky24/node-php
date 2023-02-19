@@ -622,7 +622,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 
                 const type = resultHeaders['Content-Type'] ?? [''];
 
-                if (type[0].startsWith("image")) {
+                if (type[0].startsWith("image") || type[0].startsWith("video")) {
                     // read until we get to the end of the headers
                     let foundCR = false;
                     let lines = 0;
