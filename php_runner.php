@@ -11,7 +11,11 @@
             $errline = $error["line"];
             $errstr  = $error["message"];
 
-            error_log("Error on line $errline in file $errfile: $errstr");
+            // write to the error log directly so we know for sure it actually gets
+            // written.
+            $handle = fopen(__DIR__ . "/error_log", "a");
+            fwrite($handle, date("[d-M-Y G:i:s e]") . " Fatal error on line $errline in file $errfile: $errstr");
+            fclose($handle);
         }
     }
 
@@ -23,8 +27,6 @@
     $data = json_decode($data, true);
 
     ini_set("error_log", __DIR__ . "/error_log");
-    
-    //print_r($data);
 
     chdir($data['baseDirectory']);
 	set_include_path(get_include_path() . PATH_SEPARATOR . $data['baseDirectory']);

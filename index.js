@@ -566,6 +566,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
                     if (error) {
                         console.log("Got error from php runner and no error log was generated:", error);
                         console.log("To replay, run\nQUERY_STRING=\"" + cacheFilePath + "\" " + command);
+                        console.log("STDOUT was", stdout.toString());
                         return;
                     }
                 }
