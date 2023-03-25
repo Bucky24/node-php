@@ -50,7 +50,7 @@
     }
 	
     foreach ($data['headers'] as $key=>$header) {
-        if ($key === "Cookie") {
+        if (strtolower($key) === "cookie") {
             $cookies = explode("; ", $header);
             foreach ($cookies as $cookie) {
                 $cookieList = explode("=", $cookie);
