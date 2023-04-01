@@ -455,9 +455,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
                                 name: item.filename,
                             }
 
-                            const ext = path.extname(item.filename);
-                            
-                            const cacheFile = makeid(12) + ext;
+                            const cacheFile = makeid(12);
                             const buffer = Buffer.from(item.binaryData, "binary");
                             const cacheFilePath = path.join(cacheDir, cacheFile);
                             cacheFiles.push(cacheFilePath);

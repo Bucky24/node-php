@@ -2,6 +2,15 @@
 	ini_set('display_errors', '0');
 	ini_set('memory_limit','2168M');
 
+    function handleErrorLogChanges() {
+        $error_log_location = ini_get("error_log");
+        if ($error_log_location !== (__DIR__ . "/error_log")) {
+            $handle = fopen(__DIR__ . "/error_log", "a");
+            fwrite($handle, date("[d-M-Y G:i:s e]") . " Error logs available at $error_log_location\n");
+            fclose($handle);
+        }
+    }
+
     function fatal_handler() {
         $error = error_get_last();
 
@@ -16,6 +25,9 @@
             $handle = fopen(__DIR__ . "/error_log", "a");
             fwrite($handle, date("[d-M-Y G:i:s e]") . " Fatal error on line $errline in file $errfile: $errstr");
             fclose($handle);
+        } else {
+            // Someone ran exit or die
+            handleErrorLogChanges();
         }
     }
 
@@ -27,6 +39,7 @@
     $data = json_decode($data, true);
 
     ini_set("error_log", __DIR__ . "/error_log");
+    ini_set("log_errors", "on");
 
     chdir($data['baseDirectory']);
 	set_include_path(get_include_path() . PATH_SEPARATOR . $data['baseDirectory']);
@@ -79,4 +92,6 @@
     session_save_path($data['sessionPath']);
 	
     include_once($data['file']);
+
+    handleErrorLogChanges();
 ?>
