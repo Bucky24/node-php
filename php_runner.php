@@ -69,6 +69,9 @@
                 $cookieList = explode("=", $cookie);
                 $_COOKIE[$cookieList[0]] = $cookieList[1];
             }
+        } else if (strtolower($key) === 'referer') {
+            $_SERVER['HTTP_REFERER'] = $header;
+            continue;
         }
 		
 		$_SERVER[$key] = $header;
