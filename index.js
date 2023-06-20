@@ -488,7 +488,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
                     phpFile = "index.php";
                     
                     let newFilePath = path.join(fullFilePath, phpFile);
-                    if (!fs.existsSync(fullFilePath)) {
+                    if (!fs.existsSync(newFilePath)) {
                         phpFile = "index.html";
                     }
                     newFilePath = path.join(fullFilePath, phpFile);
