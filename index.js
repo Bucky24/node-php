@@ -495,6 +495,18 @@ function serve(directory, port, staticDir = null, phpPath = null) {
                     fullFilePath = newFilePath;
                 }
             }
+
+            if (fs.lstatSync(fullFilePath).isDirectory()) {
+                // try to get index.php or html in the directory
+                phpFile = phpFile + "/index.php";
+                
+                let fullFilePath = path.join(directory, phpFile);
+                if (!fs.existsSync(fullFilePath)) {
+                    phpFile = phpFile + "index.html";
+                }
+                fullFilePath = path.join(directory, phpFile);
+            }
+
             const ext = path.extname(fullFilePath);
 
             if (ext !== ".php") {
