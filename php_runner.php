@@ -89,6 +89,10 @@
 		$_SERVER['HTTP_HOST'] = $data['host'];
 		$_SERVER['SERVER_NAME'] = $data['host'];
 	}
+
+    if (array_key_exists("method", $data)) {
+        $_SERVER['REQUEST_METHOD'] = $data['method'];
+    }
 	
 	$_SERVER['HTTPS'] = 'off';
 

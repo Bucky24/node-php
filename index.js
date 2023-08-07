@@ -546,6 +546,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
 				baseDirectory: directory,
 				host,
 				sessionPath: cacheDir,
+                method: req.method,
             };
         
             fs.writeFileSync(cacheFilePath, JSON.stringify(dataObject));

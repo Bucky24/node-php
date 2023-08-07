@@ -63,6 +63,7 @@ The module only sets the following properties:
     * HTTP_HOST
     * SERVER_NAME (set to same value as HTTP_HOST, this may not be correct in all circumstances)
     * HTTPS (set to 'off', this may not be correct)
+    * REQUEST_METHOD
 * $_SESSION - This is handled automatically by PHP, but does work correctly with this module.
 * $_COOKIE - contains raw cookie data
 
