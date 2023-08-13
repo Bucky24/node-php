@@ -496,7 +496,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
                 }
             }
 
-            if (fs.lstatSync(fullFilePath).isDirectory()) {
+            if (fs.existsSync(fullFilePath) && fs.lstatSync(fullFilePath).isDirectory()) {
                 // try to get index.php or html in the directory
                 phpFile = phpFile + "/index.php";
                 
