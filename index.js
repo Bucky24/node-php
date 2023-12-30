@@ -203,6 +203,7 @@ function serve(directory, port, staticDir = null, phpPath = null) {
             const cacheFiles = [];
             let body = null;
             const phpFiles = {};
+
             if (binaryBuffer.length > 0) {
                 const type = headers['content-type'];
                 if (type === 'application/json') {
@@ -408,6 +409,16 @@ function serve(directory, port, staticDir = null, phpPath = null) {
                         }
 
                         throw new Error("Unxpected state while processing: " + JSON.stringify(state) + " got " + num);
+                    }
+
+                    // handle a case where we got data but never got the final boundary, which can happen
+                    if (state.state == "expectingData" && state.buffer.length > 0) {
+                        const item = {
+                            headers: state.headerData,
+                            data: state.buffer,
+                            binaryData: state.binaryBuffer, 
+                        };
+                        items.push(item);
                     }
 
                     const processedItems = [];
