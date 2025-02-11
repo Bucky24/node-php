@@ -28,9 +28,14 @@ const extensionToType = {
 	".svg": "image/svg+xml",
 };
 
-function serve(directory, port, staticDir = null, phpPath = null) {
+function serve(directory, port, staticDir = null, phpPath = null, options = {}) {
     if (!fs.existsSync(directory)) {
         throw new Error(`Main directory file ${directory} could not be found`);
+    }
+
+    const fileMimeOverrides = options.mimeOverrides || {};
+    for (const fileExtension in fileMimeOverrides) {
+        extensionToType[`.${fileExtension}`] = fileMimeOverrides[fileExtension];
     }
     
     function processUrl(url) {

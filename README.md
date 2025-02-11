@@ -30,6 +30,7 @@ The serve method takes in the following parameters:
 | port | Integer | The port to start the http server on. Required |
 | staticDirectory | File Path as String | The directory where static files are to be found. Optional |
 | phpDirectory | File Path as String | The directory where the php-cgi binary is located. You can set this to override where the module looks for the php binary. Optional |
+| options | See Options. Optional |
 
 Example:
 
@@ -84,3 +85,13 @@ The server will attempt to serve static files from the staticDirectory, using th
 
 * Currently only html, js, and css files will be sent back with the appropriate Content-Type set
 * The server will attempt to load an index.html file from first the staticDirectory then the mainDirectory if it can't find an index.php in the mainDirectory
+
+# Types
+
+## Options
+
+The options object allows additional parameters to be passed into the system.
+
+| Option | Description |
+|---|---|
+| mimeOverrides | This option allows you to override the mime type sent for various file extensions that are not handled by default. It is expected to be a map with the key being the extension (not including the first dot) and the value being the mime type to use. |
